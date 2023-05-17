@@ -25,7 +25,9 @@ describe('[Challenge] Side entrance', function () {
     });
 
     it('Execution', async function () {
-        /** CODE YOUR SOLUTION HERE */
+      /** CODE YOUR SOLUTION HERE */
+      const hack = await (await ethers.getContractFactory('SideEntranceLenderPoolHack', player)).deploy();
+      await hack.hack(pool.address);
     });
 
     after(async function () {
